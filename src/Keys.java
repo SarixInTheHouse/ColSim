@@ -5,7 +5,8 @@ public enum Keys {
     LEFT(false),
     UP(false),
     RIGHT(false),
-    DOWN(false);
+    DOWN(false),
+    F12(false);
 
     boolean pressed;
 

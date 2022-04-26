@@ -10,13 +10,25 @@ import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.Buffer;
+
+import javax.imageio.ImageIO;
+
+
+// TODO need to fix how tileset is made. currently oddly cut; offset
 
 public class Display extends JFrame implements KeyListener, MouseListener {
 	
-    private final int squareSize, mapHeight, mapWidth, visHeight, visWidth;
+    private final int squareSize, mapHeight, mapWidth, visHeight, visWidth, tsHeight, tsWidth, tsSquareSize;
     private int offSetX, offSetY, offCordX, offCordY;
 
     private int[][] map;
+
+    private BufferedImage tileSet;
+    private BufferedImage[] tiles;
 
 	private Canvas canvas;
 	private Panel mainPanel;
@@ -30,15 +42,22 @@ public class Display extends JFrame implements KeyListener, MouseListener {
         squareSize = game.getSquareSize(); //size of each square in pixel
         mapHeight = game.getMapheight(); // actual height of map; not entirely rendere
         mapWidth = game.getMapWidth(); // ^^ but width
+        visHeight = 22; // actual height of game. 2 coordinates are borders !
+        visWidth = 32;
+
+        // values for tileset
+        tsHeight = 11;
+        tsWidth = 29;
+        tsSquareSize = 32;
+        fillTileSet();
+
         offSetX = -squareSize; //offset in pixels for rendering
         offSetY = -squareSize; // ^^ 
         offCordX = 0; // coordinate offset for dynamic rendering / i.e. not entire map is rendered but only visible part
         offCordY = 0; // ^^ 
-        visHeight = 22; // actual height of game. 2 coordinates are borders !
-        visWidth = 32;
-
         map = game.getMap();
-        System.out.println(map[2][2]);
+
+
 
         setTitle("colony simulator");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -118,16 +137,31 @@ public class Display extends JFrame implements KeyListener, MouseListener {
             }
         }
 
+        if (game.getDevMode()) {
+            setSize(new Dimension((visWidth-2)*squareSize, (visHeight-2+11)*squareSize));
+            canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight-2+11)*squareSize));
+            g.setColor(Color.black);
+            g.fillRect(0, 0, 1000, 1000);
+            // render palette
+
+            for (int y = 0; y < tsHeight; y++) {
+                for (int x = 0; x < tsWidth; x++) {
+                    g.drawImage(tiles[(y*tsWidth+x)], x*squareSize, //(visHeight-2+y)*squareSize 
+                    21*squareSize, null);
+                }
+            }
+
+
+        } else {
+            setSize(new Dimension((visWidth-2)*squareSize, (visHeight-2)*squareSize));
+            canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight-2)*squareSize));
+        }
         //render map
         for (int x = 0; x < visWidth; x++) {
             for (int y = 0; y < visHeight; y++) {
-                switch(map[x+offCordX][y+offCordY]) {
-                    case 1: g.setColor(Color.yellow); break;
-                    case 2: g.setColor(Color.red); break;
-                    case 3: g.setColor(Color.green); break;
-                    case 4: g.setColor(Color.blue); break;
-                }
-                g.fillRect(x*squareSize+offSetX, y*squareSize+offSetY, squareSize, squareSize);
+                BufferedImage img;
+                img = tiles[map[x+offCordX][y+offCordY]];
+                g.drawImage(img, x*squareSize+offSetX, y*squareSize+offSetY, null);
             }
         }
 
@@ -136,10 +170,28 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 
     }
 
+    public void fillTileSet() {
+        try {
+            tileSet = ImageIO.read(new File("H:/git/colsim/src/sprites/GrassBushLabyrinthTileset.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        tiles = new BufferedImage[tsHeight*tsWidth];
+
+        for (int y = 0; y < tsHeight; y++) {
+            for (int x = 0; x < tsWidth; x++) {
+                tiles[(y*tsWidth)+x] = tileSet.getSubimage(x*tsWidth, y*tsHeight, tsSquareSize, tsSquareSize);
+            }
+        }
+
+    }
+
     @Override
     public void mouseClicked(MouseEvent e) {
-        // TODO Auto-generated method stub
-        
+        int xPos = (e.getX() - offSetX) / squareSize + offCordX;
+        int yPos = (e.getY() - offSetY) / squareSize + offCordY;
+        game.mouseClick(e.getButton(), xPos, yPos);
     }
 
     @Override
@@ -176,11 +228,11 @@ public class Display extends JFrame implements KeyListener, MouseListener {
     public void keyPressed(KeyEvent e) {
         switch(e.getKeyCode()) {
 
-            case 37: Keys.LEFT.pressed = true; Keys[] keys = Keys.values(); System.out.println("left pressed: "); break;
+            case 37: Keys.LEFT.pressed = true; break;
             case 38: Keys.UP.pressed = true; break;
             case 39: Keys.RIGHT.pressed = true; break;
             case 40: Keys.DOWN.pressed = true; break;
-
+            case 123: Keys.F12.pressed = true; game.setDevMode(!game.getDevMode()); break;
         }
     }
 
@@ -192,6 +244,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
             case 38: Keys.UP.pressed = false; break;
             case 39: Keys.RIGHT.pressed = false; break;
             case 40: Keys.DOWN.pressed = false; break;
+            case 123: Keys.F12.pressed = false; break;
 
         }
     }

@@ -5,6 +5,7 @@ public class Game {
 
     private final int mapWidth, mapHeight, squareSize;
     private int[][] map;
+    private boolean devmode;
 
     public Game(int width, int height) {
 
@@ -46,9 +47,20 @@ public class Game {
 		display.render();
 	}
 
+    public void mouseClick(int button, int xPos, int yPos) {
+        switch(button) {
+            case 1: System.out.println("left click");break;
+            case 2: System.out.println("middle click");break;
+            case 3: System.out.println("right click"); break;
+        }
+    }
+
     public int getMapWidth() {return mapWidth;}
     public int getMapheight() {return mapHeight;}
     public int getSquareSize() {return squareSize;}
     public int[][] getMap() {return map;}
+    public boolean getDevMode() {return devmode;}
+
+    public void setDevMode(boolean devmode) {this.devmode = devmode;}
 
 }
