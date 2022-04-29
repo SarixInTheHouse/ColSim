@@ -11,10 +11,11 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.Rectangle;
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.nio.Buffer;
-
 import javax.imageio.ImageIO;
 
 
@@ -26,9 +27,12 @@ public class Display extends JFrame implements KeyListener, MouseListener {
     private int offSetX, offSetY, offCordX, offCordY;
 
     private int[][] map;
+    private String[] workspaces;
 
     private BufferedImage tileSet;
     private BufferedImage[] tiles;
+
+    private Rectangle[] buttons;
 
 	private Canvas canvas;
 	private Panel mainPanel;
@@ -57,7 +61,10 @@ public class Display extends JFrame implements KeyListener, MouseListener {
         offCordY = 0; // ^^ 
         map = game.getMap();
 
+        fillButtons();
 
+        workspaces = new String[2];
+        workspaces[0] = "H:/git";
 
         setTitle("colony simulator");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -138,16 +145,15 @@ public class Display extends JFrame implements KeyListener, MouseListener {
         }
 
         if (game.getDevMode()) {
-            setSize(new Dimension((visWidth-2)*squareSize, (visHeight-2+11)*squareSize));
-            canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight-2+11)*squareSize));
+            setSize(new Dimension((visWidth-2)*squareSize, (visHeight+13)*squareSize));
+            canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight+13)*squareSize));
             g.setColor(Color.black);
-            g.fillRect(0, 0, 1000, 1000);
+            g.fillRect(0, 0, (visWidth-2)*squareSize, (visHeight+13));
             // render palette
 
             for (int y = 0; y < tsHeight; y++) {
                 for (int x = 0; x < tsWidth; x++) {
-                    g.drawImage(tiles[(y*tsWidth+x)], x*squareSize, //(visHeight-2+y)*squareSize 
-                    21*squareSize, null);
+                    g.drawImage(tiles[(y*tsWidth+x)], x*squareSize, (visHeight+y)*squareSize, null);
                 }
             }
 
@@ -181,10 +187,17 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 
         for (int y = 0; y < tsHeight; y++) {
             for (int x = 0; x < tsWidth; x++) {
-                tiles[(y*tsWidth)+x] = tileSet.getSubimage(x*tsWidth, y*tsHeight, tsSquareSize, tsSquareSize);
+                tiles[(y*tsWidth)+x] = tileSet.getSubimage(x*tsSquareSize, y*tsSquareSize, tsSquareSize, tsSquareSize);
             }
         }
 
+    }
+
+    public void fillButtons() {
+        buttons = new Rectangle[5];
+
+        // pallette button
+        buttons[0] = new Rectangle(0, (visWidth-2+1)*squareSize, (visWidth-2)*squareSize, 15*squareSize);
     }
 
     @Override
@@ -228,11 +241,11 @@ public class Display extends JFrame implements KeyListener, MouseListener {
     public void keyPressed(KeyEvent e) {
         switch(e.getKeyCode()) {
 
-            case 37: Keys.LEFT.pressed = true; break;
+            case 37: Keys.LEFT.pressed = true;break;
             case 38: Keys.UP.pressed = true; break;
             case 39: Keys.RIGHT.pressed = true; break;
             case 40: Keys.DOWN.pressed = true; break;
-            case 123: Keys.F12.pressed = true; game.setDevMode(!game.getDevMode()); break;
+            case 78: Keys.F12.pressed = true; game.setDevMode(!game.getDevMode()); break;
         }
     }
 
@@ -244,8 +257,11 @@ public class Display extends JFrame implements KeyListener, MouseListener {
             case 38: Keys.UP.pressed = false; break;
             case 39: Keys.RIGHT.pressed = false; break;
             case 40: Keys.DOWN.pressed = false; break;
-            case 123: Keys.F12.pressed = false; break;
+            case 78: Keys.F12.pressed = false; break;
 
         }
     }
+
+    public int getVisWidth() {return visWidth;}
+    public int getVisheight() {return visHeight;}
 }

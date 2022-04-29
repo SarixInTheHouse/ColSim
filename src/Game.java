@@ -4,8 +4,9 @@ public class Game {
     private Display display;
 
     private final int mapWidth, mapHeight, squareSize;
-    private int[][] map;
     private boolean devmode;
+    
+    private int[][] map;
 
     public Game(int width, int height) {
 
