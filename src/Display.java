@@ -194,17 +194,25 @@ public class Display extends JFrame implements KeyListener, MouseListener {
     }
 
     public void fillButtons() {
-        buttons = new Rectangle[5];
+        buttons = new Rectangle[2];
 
-        // pallette button
-        buttons[0] = new Rectangle(0, (visWidth-2+1)*squareSize, (visWidth-2)*squareSize, 15*squareSize);
+        // game field
+        buttons[0] = new Rectangle(0, 0, (visWidth-2)*squareSize, (visHeight-2)*squareSize);
+        // pallette 
+        buttons[1] = new Rectangle(0, (visHeight-2+1)*squareSize, (visWidth-2)*squareSize, 15*squareSize);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         int xPos = (e.getX() - offSetX) / squareSize + offCordX;
         int yPos = (e.getY() - offSetY) / squareSize + offCordY;
-        game.mouseClick(e.getButton(), xPos, yPos);
+        for (int i = 0; i < buttons.length; i++) {
+            if (buttons[i].contains(new Point(e.getX(), e.getY()))) {
+                game.mouseClick(e.getButton(), xPos, yPos, i );
+                break;
+            }
+            
+        }
     }
 
     @Override

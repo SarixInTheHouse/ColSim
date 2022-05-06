@@ -4,6 +4,8 @@ public class Game {
     private Display display;
 
     private final int mapWidth, mapHeight, squareSize;
+    private int selTile;
+
     private boolean devmode;
     
     private int[][] map;
@@ -48,11 +50,25 @@ public class Game {
 		display.render();
 	}
 
-    public void mouseClick(int button, int xPos, int yPos) {
+    public void mouseClick(int button, int xPos, int yPos, int arg) {
         switch(button) {
             case 1: System.out.println("left click");break;
             case 2: System.out.println("middle click");break;
             case 3: System.out.println("right click"); break;
+        }
+        switch(arg) {
+            case 0: 
+                System.out.println("pressed game");
+                switch(button) {
+                    case 1: map[xPos][yPos] = selTile; break;
+                }
+            break;
+            case 1:
+                System.out.println("pressed pallette");
+                switch(button) {
+                    case 1: selTile = map[xPos][yPos]; break;
+                }
+            break;
         }
     }
 
