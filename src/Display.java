@@ -1,4 +1,4 @@
-package src;
+
 import javax.swing.JFrame;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -13,9 +13,9 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.Rectangle;
 import java.awt.Point;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.IOException;
-import java.nio.Buffer;
 import javax.imageio.ImageIO;
 
 
@@ -23,8 +23,8 @@ import javax.imageio.ImageIO;
 
 public class Display extends JFrame implements KeyListener, MouseListener {
 	
-    private final int squareSize, mapHeight, mapWidth, visHeight, visWidth, tsHeight, tsWidth, tsSquareSize;
-    private int offSetX, offSetY, offCordX, offCordY;
+    private final int squareSize, mapHeight, mapWidth, tsHeight, tsWidth, tsSquareSize;
+    private int visHeight, visWidth, offSetX, offSetY, offCordX, offCordY;
 
     private int[][] map;
     private String[] workspaces;
@@ -68,14 +68,17 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 
         setTitle("colony simulator");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setResizable(false);
-		
+        setVisible(true);
+        GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        this.setMaximizedBounds(env.getMaximumWindowBounds());
+        this.setExtendedState(this.getExtendedState() | this.MAXIMIZED_BOTH);
+
 		mainPanel = new Panel();
 		mainPanel.setFocusable(true);
 		mainPanel.setVisible(true);
 		
 		canvas = new Canvas();
-		canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight-2)*squareSize));
+        canvas.setPreferredSize(new Dimension(this.getBounds().width, this.getBounds().height));
 		canvas.setFocusable(false);
 		mainPanel.add(canvas);
 		mainPanel.addKeyListener(this);
@@ -90,12 +93,12 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 		canvas.createBufferStrategy(3);
 
 		mainPanel.requestFocusInWindow();
-
-        setVisible(true);
-
     }
 
     public void render() {
+
+        visHeight = (int) this.getBounds().height / squareSize + 2;
+        visWidth = (int) this.getBounds().width / squareSize + 2;
 
         BufferStrategy bufferStrategy = canvas.getBufferStrategy();
 		Graphics g = bufferStrategy.getDrawGraphics();
@@ -116,6 +119,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
                 offSetY++;
             }
         }
+
         if (Keys.DOWN.pressed) {   
             if (offCordY+1 < mapHeight-visHeight){
                 if (offSetY == -squareSize) {
@@ -143,25 +147,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
                 offSetX--;
             }
         }
-
-        if (game.getDevMode()) {
-            setSize(new Dimension((visWidth-2)*squareSize, (visHeight+13)*squareSize));
-            canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight+13)*squareSize));
-            g.setColor(Color.black);
-            g.fillRect(0, 0, (visWidth-2)*squareSize, (visHeight+13));
-            // render palette
-
-            for (int y = 0; y < tsHeight; y++) {
-                for (int x = 0; x < tsWidth; x++) {
-                    g.drawImage(tiles[(y*tsWidth+x)], x*squareSize, (visHeight+y)*squareSize, null);
-                }
-            }
-
-
-        } else {
-            setSize(new Dimension((visWidth-2)*squareSize, (visHeight-2)*squareSize));
-            canvas.setPreferredSize(new Dimension((visWidth-2)*squareSize, (visHeight-2)*squareSize));
-        }
+        
         //render map
         for (int x = 0; x < visWidth; x++) {
             for (int y = 0; y < visHeight; y++) {
@@ -169,6 +155,20 @@ public class Display extends JFrame implements KeyListener, MouseListener {
                 img = tiles[map[x+offCordX][y+offCordY]];
                 g.drawImage(img, x*squareSize+offSetX, y*squareSize+offSetY, null);
             }
+        }
+
+        if (game.getDevMode()) {
+            // render palette
+            g.setColor(Color.black);
+            g.fillRect((visWidth-tsWidth)*squareSize-4, (visHeight-tsHeight)*squareSize-8, tsWidth*squareSize+8, tsHeight*squareSize+4);
+            for (int y = 0; y < tsHeight; y++) {
+                for (int x = 0; x < tsWidth; x++) {
+                    g.drawImage(tiles[(y*tsWidth+x)], (x + visWidth - tsWidth)*squareSize, (y+visHeight-tsHeight)*squareSize-4, null);
+                }
+            }
+
+
+        } else {
         }
 
         g.dispose();
@@ -204,14 +204,13 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        int xPos = (e.getX() - offSetX) / squareSize + offCordX;
-        int yPos = (e.getY() - offSetY) / squareSize + offCordY;
+        // int xPos = (e.getX() - offSetX) / squareSize + offCordX;
+        // int yPos = (e.getY() - offSetY) / squareSize + offCordY;
         for (int i = 0; i < buttons.length; i++) {
             if (buttons[i].contains(new Point(e.getX(), e.getY()))) {
-                game.mouseClick(e.getButton(), xPos, yPos, i );
+                game.mouseClick(new MouseData(e.getButton(), e.getX(), e.getY(), i, offSetX, offSetY, offCordX, offCordY));
                 break;
-            }
-            
+            }   
         }
     }
 
@@ -253,7 +252,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
             case 38: Keys.UP.pressed = true; break;
             case 39: Keys.RIGHT.pressed = true; break;
             case 40: Keys.DOWN.pressed = true; break;
-            case 78: Keys.F12.pressed = true; game.setDevMode(!game.getDevMode()); break;
+            case 66: game.setDevMode(!game.getDevMode()); break;
         }
     }
 
@@ -265,11 +264,14 @@ public class Display extends JFrame implements KeyListener, MouseListener {
             case 38: Keys.UP.pressed = false; break;
             case 39: Keys.RIGHT.pressed = false; break;
             case 40: Keys.DOWN.pressed = false; break;
-            case 78: Keys.F12.pressed = false; break;
+            case 66: break;
 
         }
     }
 
     public int getVisWidth() {return visWidth;}
     public int getVisheight() {return visHeight;}
+    public BufferedImage[] getTiles() {return tiles;}
+    public int getTsWidth() {return tsWidth;}
+    public int getTsHeight() {return tsHeight;}
 }

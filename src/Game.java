@@ -1,4 +1,4 @@
-package src;
+
 public class Game {
 
     private Display display;
@@ -12,8 +12,8 @@ public class Game {
 
     public Game(int width, int height) {
 
-        mapWidth = 102;
-        mapHeight = 102;
+        mapWidth = 1000+2;
+        mapHeight = 1000+2;
         squareSize = 32;
 
         //creating basic map
@@ -50,23 +50,30 @@ public class Game {
 		display.render();
 	}
 
-    public void mouseClick(int button, int xPos, int yPos, int arg) {
-        switch(button) {
+    // MOUSE POSITIONS ARE IN PIXELS!!
+
+    public void mouseClick(MouseData event) {
+        int xPos = 0, yPos = 0;
+        switch(event.button) {
             case 1: System.out.println("left click");break;
             case 2: System.out.println("middle click");break;
             case 3: System.out.println("right click"); break;
         }
-        switch(arg) {
+        switch(event.col) {
             case 0: 
+                xPos = (event.mx - event.offSetX) / squareSize + event.offCordX;
+                yPos = (event.my - event.offSetY) / squareSize + event.offCordY;
                 System.out.println("pressed game");
-                switch(button) {
+                switch(event.button) {
                     case 1: map[xPos][yPos] = selTile; break;
                 }
             break;
             case 1:
-                System.out.println("pressed pallette");
-                switch(button) {
-                    case 1: selTile = map[xPos][yPos]; break;
+                xPos = event.mx / squareSize ;
+                yPos = event.my / squareSize - 22 ;
+                System.out.println("pressed pallette: " + xPos + "/" + yPos);
+                switch(event.button) {
+                    case 1: selTile = xPos+yPos*display.getTsWidth(); break;
                 }
             break;
         }

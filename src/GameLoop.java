@@ -1,4 +1,4 @@
-package src;
+
 public class GameLoop implements Runnable{
 
 	private boolean running;
